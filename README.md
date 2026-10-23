@@ -1,23 +1,39 @@
-# Snipe-IT End-to-End Automation Framework (.NET 8 & Playwright)
+Snipe-IT Automation Suite
 
-A production-ready test automation framework targeting the [Snipe-IT Asset Management Demo](https://demo.snipeitapp.com), designed using C#, .NET 8, Playwright, and NUnit.
+A Playwright C# end-to-end test automation framework for Snipe-IT Asset Management.
 
-## Key Architectural Features
+🚀 Quick Start
 
-- **Page Object Model (POM):** Clean Separation of Concerns with a Fluent API design.
-- **User-Centric Locators:** Priority given to Accessibility Role (`GetByRole`) and text selectors over fragile DOM structure.
-- **Network Synchronization:** Dynamic wait strategies listening to AJAX network responses (`WaitForResponseAsync`) rather than static sleeps.
-- **Diagnostic Tracing:** Automatic capture of Playwright Tracing (`.zip` containing snapshots, action logs, and network calls) on test failure.
-- **Parallelization Ready:** NUnit parallel execution support configured out of the box.
+1. Run Headless (Default)
 
-## Prerequisites
+Run the test suite silently in the background:
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/8.0)
-- PowerShell or Terminal
+dotnet test --logger "console;verbosity=detailed"
 
-## Quick Start
 
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/YOUR_USERNAME/SnipeItAutomation.git](https://github.com/YOUR_USERNAME/SnipeItAutomation.git)
-   cd SnipeItAutomation
+2. Run Headed (Visible Browser)
+
+Run tests with a visible browser window:
+
+dotnet test -- TestRunParameters.Parameter(name="Headless",value="false")
+
+
+🧪 Modules Tested
+
+Module 1 (Authentication): Logs in as Administrator.
+
+Module 2 (Asset Creation): Navigates to Create Asset, fills details, and checks out to an asset.
+
+Module 3 (Feedback): Captures dynamic Asset Tag and verifies the green success banner.
+
+Module 4 (Detail Validation): Searches grid, opens asset detail page, and validates field values.
+
+Module 5 (Audit History): Navigates to History tab and verifies the create new audit log record.
+
+📁 Tech Stack
+
+Language: C# / .NET 10
+
+Framework: Playwright C# & NUnit
+
+Pattern: Page Object Model (POM)

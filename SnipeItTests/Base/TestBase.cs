@@ -1,34 +1,55 @@
 ﻿using Microsoft.Playwright;
-using Microsoft.Playwright.NUnit;
+using NUnit.Framework;
 
-namespace SnipeItTests.Base
+namespace SnipeItTests.Base;
+
+public abstract class TestBase
 {
-    public class TestBase : PageTest
+    protected IPlaywright Playwright { get; private set; } = null!;
+    protected IBrowser Browser { get; private set; } = null!;
+    protected IBrowserContext Context { get; private set; } = null!;
+    protected IPage Page { get; private set; } = null!;
+
+    [SetUp]
+    public async Task Setup()
     {
-        protected override TimeSpan Timeout => TimeSpan.FromSeconds(30);
+        Playwright = await Microsoft.Playwright.Playwright.CreateAsync();
 
-        [SetUp]
-        public async Task SetupBase()
+        // 1. Check NUnit run parameter first, then environment variable, default to true
+        string nunitParam = TestContext.Parameters.Get("Headless", string.Empty);
+        string envParam = Environment.GetEnvironmentVariable("HEADLESS") ?? string.Empty;
+
+        bool isHeadless = true; // Default to true
+
+        if (!string.IsNullOrEmpty(nunitParam))
         {
-            await Context.Tracing.StartAsync(new()
-            {
-                Screenshots = true,
-                Snapshots = true,
-                Sources = true
-            });
+            isHeadless = !nunitParam.Equals("false", StringComparison.OrdinalIgnoreCase);
+        }
+        else if (!string.IsNullOrEmpty(envParam))
+        {
+            isHeadless = !envParam.Equals("false", StringComparison.OrdinalIgnoreCase);
         }
 
-        [TearDown]
-        public async Task TearDownBase()
+        Browser = await Playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
         {
-            if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed)
-            {
-                var failedTestName = TestContext.CurrentContext.Test.Name;
-                await Context.Tracing.StopAsync(new()
-                {
-                    Path = $"trace-{failedTestName}-{DateTime.Now:yyyyMMdd_HHmmss}.zip"
-                });
-            }
-        }
+            Headless = isHeadless,
+            SlowMo = isHeadless ? 0 : 300
+        });
+
+        Context = await Browser.NewContextAsync(new BrowserNewContextOptions
+        {
+            ViewportSize = new ViewportSize { Width = 1280, Height = 800 }
+        });
+
+        Page = await Context.NewPageAsync();
+    }
+
+    [TearDown]
+    public async Task TearDown()
+    {
+        if (Page != null) await Page.CloseAsync();
+        if (Context != null) await Context.CloseAsync();
+        if (Browser != null) await Browser.CloseAsync();
+        Playwright?.Dispose();
     }
 }

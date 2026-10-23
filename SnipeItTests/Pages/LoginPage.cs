@@ -1,31 +1,33 @@
 ﻿using Microsoft.Playwright;
+using SnipeItTests.Configuration;
 
-namespace SnipeItTests.Pages
+namespace SnipeItTests.Pages;
+
+public class LoginPage : BasePage
 {
-    public class LoginPage
+    private ILocator UsernameInput => Page.GetByPlaceholder("Username");
+    private ILocator PasswordInput => Page.GetByPlaceholder("Password");
+    private ILocator SubmitButton => Page.GetByRole(AriaRole.Button, new() { Name = "Login" });
+
+    public LoginPage(IPage page) : base(page) { }
+
+    public async Task<LoginPage> NavigateAsync()
     {
-        private readonly IPage _page;
+        await Page.GotoAsync($"{TestConfig.BaseUrl}/login");
+        return this;
+    }
 
-        private ILocator UsernameInput => _page.Locator("#username");
-        private ILocator PasswordInput => _page.Locator("#password");
-        private ILocator LoginButton => _page.Locator("button[type='submit']");
+    public async Task<AssetsListPage> LoginAsAdminAsync()
+    {
+        await UsernameInput.FillAsync(TestConfig.AdminUsername);
+        await PasswordInput.FillAsync(TestConfig.AdminPassword);
+        await SubmitButton.ClickAsync();
 
-        public LoginPage(IPage page)
+        await Page.WaitForURLAsync(url => url.Contains("snipeitapp") || url.EndsWith(".com/"), new()
         {
-            _page = page;
-        }
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        });
 
-        public async Task GotoAsync(string url)
-        {
-            await _page.GotoAsync(url);
-        }
-
-        public async Task LoginAsync(string username, string password)
-        {
-            await UsernameInput.FillAsync(username);
-            await PasswordInput.FillAsync(password);
-            await LoginButton.ClickAsync();
-            await _page.WaitForURLAsync("**/hardware**", new() { WaitUntil = WaitUntilState.DOMContentLoaded });
-        }
+        return new AssetsListPage(Page);
     }
 }
